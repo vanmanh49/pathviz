@@ -4,11 +4,14 @@ import {
   MoveDiagonal,
   Play,
   RotateCcw,
+  TriangleAlert,
   Waypoints,
   Weight,
   type LucideIcon,
 } from 'lucide-react';
-import { ALGORITHMS } from '../data/algorithms';
+import { isAdmissible } from '../algorithms/heuristics';
+import type { HeuristicId } from '../algorithms/types';
+import { ALGORITHMS, getAlgorithm } from '../data/algorithms';
 import { COL_LIMITS, ROW_LIMITS, useGridStore } from '../store/gridStore';
 import { usePlaybackStore } from '../store/playbackStore';
 import { useUiStore, type Pane, type Tool } from '../store/uiStore';
@@ -125,23 +128,56 @@ function EditToolbar() {
   );
 }
 
+const HEURISTICS: { id: HeuristicId; name: string }[] = [
+  { id: 'manhattan', name: 'Manhattan' },
+  { id: 'euclidean', name: 'Euclidean' },
+  { id: 'octile', name: 'Octile' },
+  { id: 'chebyshev', name: 'Chebyshev' },
+];
+
 function AlgorithmPicker({ pane, label }: { pane: Pane; label: string }) {
-  const algorithmId = usePlaybackStore((s) => s.panes[pane].algorithmId);
-  const setAlgorithm = usePlaybackStore((s) => s.setAlgorithm);
+  const { algorithmId, heuristic } = usePlaybackStore((s) => s.panes[pane]);
+  const diagonal = useGridStore((s) => s.diagonal);
+  const { setAlgorithm, setHeuristic } = usePlaybackStore.getState();
+  const info = getAlgorithm(algorithmId);
+  // Only A* promises a shortest path on condition of the heuristic, so only it gets the warning.
+  const overestimates = info.optimal === 'conditional' && !isAdmissible(heuristic, diagonal);
 
   return (
-    <select
-      className="field"
-      aria-label={label}
-      value={algorithmId}
-      onChange={(e) => setAlgorithm(pane, e.target.value)}
-    >
-      {ALGORITHMS.map(({ id, name }) => (
-        <option key={id} value={id}>
-          {name}
-        </option>
-      ))}
-    </select>
+    <>
+      <select
+        className="field"
+        aria-label={label}
+        value={algorithmId}
+        onChange={(e) => setAlgorithm(pane, e.target.value)}
+      >
+        {ALGORITHMS.map(({ id, name }) => (
+          <option key={id} value={id}>
+            {name}
+          </option>
+        ))}
+      </select>
+      {info.usesHeuristic && (
+        <select
+          className="field"
+          aria-label={label === 'Algorithm' ? 'Heuristic' : `Heuristic for ${label}`}
+          value={heuristic}
+          onChange={(e) => setHeuristic(pane, e.target.value as HeuristicId)}
+        >
+          {HEURISTICS.map(({ id, name }) => (
+            <option key={id} value={id}>
+              {name}
+            </option>
+          ))}
+        </select>
+      )}
+      {overestimates && (
+        <span className="flex items-center gap-1 text-xs text-muted" role="note">
+          <TriangleAlert size={14} className="text-[var(--end)]" aria-hidden />
+          Manhattan overestimates with diagonal moves, so the path may not be the shortest.
+        </span>
+      )}
+    </>
   );
 }
 

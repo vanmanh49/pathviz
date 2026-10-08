@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { parseGrid, randomCase } from '../algorithms/testUtils';
 import type { StepEvent } from '../algorithms/types';
-import { getAlgorithm } from '../data/algorithms';
+import { ALGORITHMS, getAlgorithm } from '../data/algorithms';
 import { mulberry32 } from '../utils/rng';
 import {
   DISCOVERED,
@@ -174,7 +174,7 @@ describe('Playback', () => {
   });
 });
 
-describe.each(['bfs', 'dijkstra'])('%s playback', (id) => {
+describe.each(ALGORITHMS.map((a) => a.id))('%s playback', (id) => {
   const events = randomRun(id);
 
   it('produces enough events to cross several checkpoints', () => {
@@ -210,6 +210,7 @@ describe.each(['bfs', 'dijkstra'])('%s playback', (id) => {
 
   it('the head of the frontier is always the next cell visited', () => {
     const { frontier } = getAlgorithm(id);
+    if (frontier === 'none') return;
     const playback = new Playback(SIZE, events);
     events.forEach((event, i) => {
       if (event.type !== 'visit') return;

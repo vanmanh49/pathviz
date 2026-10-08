@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
-import { beforeEach, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { useGridStore } from '../store/gridStore';
+import { usePlaybackStore } from '../store/playbackStore';
 import { useUiStore } from '../store/uiStore';
 import { TopBar } from './TopBar';
 
@@ -10,6 +11,12 @@ beforeEach(() => {
   grid().resize(10, 10);
   grid().setDiagonal(false);
   useUiStore.setState({ tool: 'wall', brush: 5 });
+  usePlaybackStore.setState({
+    panes: [
+      { algorithmId: 'bfs', heuristic: 'manhattan' },
+      { algorithmId: 'dijkstra', heuristic: 'manhattan' },
+    ],
+  });
   render(<TopBar />);
 });
 
@@ -58,4 +65,40 @@ it('resizes the grid from the row and column sliders', () => {
   fireEvent.change(screen.getByRole('slider', { name: 'Columns' }), { target: { value: '20' } });
   expect(grid().grid.rows).toBe(12);
   expect(grid().grid.cols).toBe(20);
+});
+
+describe('heuristic', () => {
+  const pick = (name: string, value: string) =>
+    fireEvent.change(screen.getByRole('combobox', { name }), { target: { value } });
+
+  it('offers a heuristic only for algorithms that use one', () => {
+    expect(screen.queryByRole('combobox', { name: 'Heuristic' })).toBeNull();
+    pick('Algorithm', 'astar');
+    expect(screen.getByRole('combobox', { name: 'Heuristic' })).toHaveValue('manhattan');
+    pick('Algorithm', 'greedy');
+    expect(screen.getByRole('combobox', { name: 'Heuristic' })).toBeInTheDocument();
+    pick('Algorithm', 'dijkstra');
+    expect(screen.queryByRole('combobox', { name: 'Heuristic' })).toBeNull();
+  });
+
+  it('sets the heuristic', () => {
+    pick('Algorithm', 'astar');
+    pick('Heuristic', 'octile');
+    expect(usePlaybackStore.getState().panes[0].heuristic).toBe('octile');
+  });
+
+  it('warns when A* is given a heuristic that overestimates', () => {
+    pick('Algorithm', 'astar');
+    expect(screen.queryByText(/overestimates/)).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Diagonal movement' }));
+    expect(screen.getByText(/overestimates/)).toBeInTheDocument();
+    pick('Heuristic', 'octile');
+    expect(screen.queryByText(/overestimates/)).toBeNull();
+  });
+
+  it('does not warn for greedy search, which is never optimal anyway', () => {
+    pick('Algorithm', 'greedy');
+    fireEvent.click(screen.getByRole('button', { name: 'Diagonal movement' }));
+    expect(screen.queryByText(/overestimates/)).toBeNull();
+  });
 });
