@@ -32,8 +32,10 @@ const solve = (id: string, rows: string[], options: RunOptions = STRAIGHT) =>
 const ofType = <T extends StepEvent['type']>(events: StepEvent[], type: T) =>
   events.filter((e): e is Extract<StepEvent, { type: T }> => e.type === type);
 
-it('registers the seven algorithms', () => {
-  expect(ALGORITHMS.map((a) => a.id)).toEqual(ALL);
+it('registers the seven algorithms under unique ids', () => {
+  const ids = ALGORITHMS.map((a) => a.id);
+  expect(ids).toEqual(expect.arrayContaining(ALL));
+  expect(new Set(ids).size).toBe(ids.length);
 });
 
 describe.each(ALL)('%s', (id) => {

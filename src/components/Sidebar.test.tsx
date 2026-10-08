@@ -2,6 +2,7 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
 import App from '../App';
 import { toId } from '../algorithms/grid';
+import { ALGORITHMS } from '../data/algorithms';
 import { frontierItems } from '../engine/playback';
 import { useGridStore } from '../store/gridStore';
 import { usePlaybackStore } from '../store/playbackStore';
@@ -62,7 +63,7 @@ describe('pseudocode', () => {
     expect(highlighted()).toEqual([]);
   });
 
-  it.each(['bfs', 'astar', 'bellman-ford'])(
+  it.each(ALGORITHMS.map((a) => a.id))(
     'highlights the line of the current event at every step of %s',
     (id) => {
       // A small grid keeps a walk over every single step quick.

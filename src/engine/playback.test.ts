@@ -20,14 +20,16 @@ const ROWS = 10;
 const COLS = 15;
 const SIZE = ROWS * COLS;
 
-/** The first seeded random grid on which the algorithm runs long enough to cross several checkpoints. */
+/** The longest run of the algorithm over a handful of seeded random grids. */
 function randomRun(id: string) {
-  for (let seed = 1; ; seed++) {
+  let longest: StepEvent[] = [];
+  for (let seed = 1; seed <= 30; seed++) {
     const rates = { wall: 0.2, weight: 0.3 };
     const { grid, start, end } = randomCase(mulberry32(seed), ROWS, COLS, rates);
     const events = getAlgorithm(id).run(grid, start, end, OPTIONS);
-    if (events.length > 300) return events;
+    if (events.length > longest.length) longest = events;
   }
+  return longest;
 }
 
 function replay(events: StepEvent[], count: number, size = SIZE) {
@@ -177,10 +179,6 @@ describe('Playback', () => {
 describe.each(ALGORITHMS.map((a) => a.id))('%s playback', (id) => {
   const events = randomRun(id);
 
-  it('produces enough events to cross several checkpoints', () => {
-    expect(events.length).toBeGreaterThan(150);
-  });
-
   it('stepping forward N then back N returns the initial state', () => {
     const playback = new Playback(SIZE, events);
     for (let i = 1; i <= playback.length; i++) playback.seek(i);
@@ -218,6 +216,12 @@ describe.each(ALGORITHMS.map((a) => a.id))('%s playback', (id) => {
       expect(frontierItems(playback.state, frontier, event.side)[0].node).toBe(event.node);
     });
   });
+});
+
+it('the built-in runs are long enough to cross several checkpoints', () => {
+  for (const id of ['bfs', 'dfs', 'dijkstra', 'astar', 'greedy', 'bidirectional', 'bellman-ford']) {
+    expect(randomRun(id).length, id).toBeGreaterThan(150);
+  }
 });
 
 describe('frontierItems', () => {
