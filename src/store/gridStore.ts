@@ -26,6 +26,8 @@ interface GridState {
   end: CellId;
   diagonal: boolean;
   generating: boolean;
+  /** The weight each endpoint is sitting on, restored when it moves away. */
+  covered: { start: number; end: number };
   setWall(id: CellId, on: boolean): void;
   setWeight(id: CellId, value: number): void;
   erase(id: CellId): void;
@@ -46,7 +48,11 @@ const GENERATION_FRAMES = 90;
 const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, Math.round(n)));
 
 function blank(rows: number, cols: number) {
-  return { grid: createGrid(rows, cols), ...defaultEndpoints(rows, cols) };
+  return {
+    grid: createGrid(rows, cols),
+    ...defaultEndpoints(rows, cols),
+    covered: { start: 1, end: 1 },
+  };
 }
 
 export const useGridStore = create<GridState>((set, get) => {
@@ -70,10 +76,15 @@ export const useGridStore = create<GridState>((set, get) => {
   const moveEndpoint = (key: 'start' | 'end', id: CellId) => {
     const { grid, start, end } = get();
     if (id === start || id === end || grid.walls[id]) return;
-    if (grid.weights[id] === 1) return change({ [key]: id });
+    const { covered } = get();
+    const from = key === 'start' ? start : end;
+    if (grid.weights[id] === 1 && covered[key] === 1) return change({ [key]: id });
+    // The endpoint's own cell always costs 1; the weight it covers comes back when it leaves.
     const weights = grid.weights.slice();
+    weights[from] = covered[key];
+    const beneath = weights[id];
     weights[id] = 1;
-    change({ [key]: id, grid: { ...grid, weights } });
+    change({ [key]: id, grid: { ...grid, weights }, covered: { ...covered, [key]: beneath } });
   };
 
   const initial = defaultSize(typeof window === 'undefined' ? 1280 : window.innerWidth);
@@ -94,7 +105,10 @@ export const useGridStore = create<GridState>((set, get) => {
     },
     clearWeights: () => {
       const { grid } = get();
-      change({ grid: { ...grid, weights: new Uint8Array(grid.weights.length).fill(1) } });
+      change({
+        grid: { ...grid, weights: new Uint8Array(grid.weights.length).fill(1) },
+        covered: { start: 1, end: 1 },
+      });
     },
     resetAll: () => {
       const { grid } = get();

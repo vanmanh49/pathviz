@@ -59,6 +59,15 @@ export function stepCost(grid: Grid, from: CellId, to: CellId): number {
   return grid.weights[to] * (straight ? 1 : Math.SQRT2);
 }
 
+/**
+ * Whether `candidate` is a real improvement on `current`. Sums of √2 reach the
+ * same cell by different routes with differences in the last few bits; those
+ * are not shorter paths and must not be reported as such.
+ */
+export function improves(candidate: number, current: number): boolean {
+  return candidate < current - 1e-9;
+}
+
 export function pathCost(grid: Grid, nodes: CellId[]): number {
   let cost = 0;
   for (let i = 1; i < nodes.length; i++) cost += stepCost(grid, nodes[i - 1], nodes[i]);

@@ -1,4 +1,4 @@
-import { neighbors, stepCost, tracePath } from './grid';
+import { improves, neighbors, stepCost, tracePath } from './grid';
 import { PriorityQueue } from './priorityQueue';
 import type { Algorithm, CellId, StepEvent } from './types';
 
@@ -49,7 +49,7 @@ export const dijkstra: Algorithm = (grid, start, end, { diagonal }) => {
         continue;
       }
       const alt = dist[u] + stepCost(grid, u, v);
-      if (alt >= dist[v]) {
+      if (!improves(alt, dist[v])) {
         events.push({ type: 'skip', node: v, reason: 'no improvement', line: 9 });
         continue;
       }

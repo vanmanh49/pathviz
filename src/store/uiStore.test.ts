@@ -42,3 +42,13 @@ it('persists only the theme and the tour flag', async () => {
   const saved = JSON.parse(localStorage.getItem(KEY) ?? '{}') as { state: unknown };
   expect(saved.state).toEqual({ theme: 'light', tourSeen: false });
 });
+
+it('ignores stored values of the wrong kind', async () => {
+  localStorage.setItem(
+    KEY,
+    JSON.stringify({ state: { theme: 'blue', tourSeen: 'no' }, version: 0 }),
+  );
+  const store = await freshStore();
+  expect(store.getState().theme).toBe('dark');
+  expect(store.getState().tourSeen).toBe(false);
+});

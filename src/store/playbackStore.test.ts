@@ -180,3 +180,15 @@ describe('generators', () => {
     expect(play().runs).not.toBeNull();
   });
 });
+
+describe('instant speed', () => {
+  it('play at instant speed goes straight to the end', () => {
+    play().run();
+    play().pause();
+    play().seek(3);
+    usePlaybackStore.setState({ speed: Infinity });
+    play().play();
+    expect(play().index).toBe(play().length);
+    expect(play().playing).toBe(false);
+  });
+});

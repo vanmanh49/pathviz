@@ -15,6 +15,7 @@ export function StatsPanel({ run }: { run: Run | null }) {
           ['Nodes visited', state ? state.visitedCount : '—'],
           ['Path length', traced && run ? run.pathLength : pending],
           ['Path cost', traced && run?.pathCost != null ? formatNumber(run.pathCost) : pending],
+          ['Shortest path', traced && run?.optimal != null ? (run.optimal ? 'Yes' : 'No') : '—'],
           ['Steps', run ? `${run.playback.index} / ${run.playback.length}` : '—'],
           ['Compute time', run ? `${run.computeMs.toFixed(2)} ms` : '—'],
         ]}

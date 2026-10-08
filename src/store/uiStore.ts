@@ -40,6 +40,14 @@ export const useUiStore = create<UiState>()(
     {
       name: 'pathviz-ui',
       partialize: ({ theme, tourSeen }) => ({ theme, tourSeen }),
+      merge: (stored, current) => {
+        const saved = (stored ?? {}) as Partial<Record<'theme' | 'tourSeen', unknown>>;
+        return {
+          ...current,
+          theme: saved.theme === 'light' || saved.theme === 'dark' ? saved.theme : current.theme,
+          tourSeen: typeof saved.tourSeen === 'boolean' ? saved.tourSeen : current.tourSeen,
+        };
+      },
     },
   ),
 );

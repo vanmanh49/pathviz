@@ -403,3 +403,22 @@ describe('properties over random grids', () => {
     expect(reachable.length).toBeLessThan(GRIDS);
   });
 });
+
+describe('rounding noise with diagonal moves', () => {
+  const open = Array.from({ length: 25 }, () => '.'.repeat(50));
+  open[12] = `${'.'.repeat(12)}S${'.'.repeat(24)}E${'.'.repeat(12)}`;
+
+  it.each(WEIGHT_AWARE)('%s never reports an improvement smaller than rounding error', (id) => {
+    const { events } = solve(id, open, DIAGONAL);
+    for (const event of ofType(events, 'relax')) {
+      if (event.oldDist !== Infinity) {
+        expect(event.oldDist - event.newDist).toBeGreaterThan(1e-9);
+      }
+    }
+  });
+
+  it('dijkstra has no stale entries on an open unweighted grid', () => {
+    const { events } = solve('dijkstra', open, DIAGONAL);
+    expect(ofType(events, 'skip').filter((e) => e.reason === 'stale entry')).toHaveLength(0);
+  });
+});

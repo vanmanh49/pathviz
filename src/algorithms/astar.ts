@@ -1,4 +1,4 @@
-import { neighbors, stepCost, tracePath } from './grid';
+import { improves, neighbors, stepCost, tracePath } from './grid';
 import { heuristic } from './heuristics';
 import { PriorityQueue } from './priorityQueue';
 import type { Algorithm, CellId, StepEvent } from './types';
@@ -55,7 +55,7 @@ export const astar: Algorithm = (grid, start, end, options) => {
         continue;
       }
       const alt = g[u] + stepCost(grid, u, v);
-      if (alt >= g[v]) {
+      if (!improves(alt, g[v])) {
         events.push({ type: 'skip', node: v, reason: 'no improvement', line: 9 });
         continue;
       }

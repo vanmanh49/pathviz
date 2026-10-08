@@ -121,6 +121,7 @@ export const usePlaybackStore = create<PlaybackStore>((set, get) => {
     play: () => {
       const { runs, index, length } = get();
       if (!runs) return get().run();
+      if (get().speed === Infinity) return get().seek(length);
       if (index === length) get().seek(0);
       set({ playing: true });
     },

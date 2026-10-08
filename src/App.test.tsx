@@ -304,3 +304,32 @@ describe('playback loop', () => {
     expect(play().index).toBe(0);
   });
 });
+
+describe('shortcuts after using a control with the mouse', () => {
+  it('Space still plays after picking a speed with the mouse', () => {
+    render(<App />);
+    const speed = screen.getByRole('combobox', { name: 'Speed' });
+    speed.focus();
+    fireEvent.pointerDown(speed);
+    fireEvent.change(speed, { target: { value: '3' } });
+    expect(speed).not.toHaveFocus();
+    fireEvent.keyDown(document.activeElement!, { key: ' ' });
+    expect(play().playing).toBe(true);
+  });
+
+  it('a select changed from the keyboard keeps focus', () => {
+    render(<App />);
+    const speed = screen.getByRole('combobox', { name: 'Speed' });
+    speed.focus();
+    fireEvent.keyDown(speed, { key: 'ArrowDown' });
+    fireEvent.change(speed, { target: { value: '3' } });
+    expect(speed).toHaveFocus();
+  });
+
+  it('Space on the timeline plays and pauses', () => {
+    render(<App />);
+    runPaused();
+    fireEvent.keyDown(screen.getByRole('slider', { name: 'Timeline' }), { key: ' ' });
+    expect(play().playing).toBe(true);
+  });
+});

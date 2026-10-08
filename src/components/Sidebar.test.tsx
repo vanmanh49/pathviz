@@ -322,3 +322,20 @@ describe('inspector', () => {
     expect(useUiStore.getState().inspected).toBeNull();
   });
 });
+
+describe('measured optimality', () => {
+  const stat = (label: string) => panel('Stats').getByText(label).nextSibling;
+
+  it('says whether the traced path is a shortest one', () => {
+    grid().resize(8, 12);
+    for (let col = 4; col <= 7; col++) grid().setWeight(toId(12, 4, col), 9);
+    render(<Sidebar />);
+    start('bfs');
+    expect(stat('Shortest path')).toHaveTextContent('—');
+    seek(play().length);
+    expect(stat('Shortest path')).toHaveTextContent('No');
+    start('dijkstra');
+    seek(play().length);
+    expect(stat('Shortest path')).toHaveTextContent('Yes');
+  });
+});

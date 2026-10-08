@@ -179,3 +179,21 @@ describe('generating', () => {
     expect(s().generating).toBe(false);
   });
 });
+
+describe('endpoints over weights', () => {
+  it('gives a weight back when the endpoint moves off it', () => {
+    for (let id = 0; id < 6; id++) s().setWeight(id, 7);
+    for (let id = 5; id >= 0; id--) s().moveStart(id);
+    expect(Array.from(s().grid.weights.slice(0, 6))).toEqual([1, 7, 7, 7, 7, 7]);
+    s().moveStart(60);
+    expect(s().grid.weights[0]).toBe(7);
+  });
+
+  it('does not bring back a weight that was cleared while covered', () => {
+    s().setWeight(0, 7);
+    s().moveEnd(0);
+    s().clearWeights();
+    s().moveEnd(60);
+    expect(s().grid.weights[0]).toBe(1);
+  });
+});

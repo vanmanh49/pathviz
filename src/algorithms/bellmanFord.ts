@@ -1,4 +1,4 @@
-import { neighbors, stepCost, tracePath } from './grid';
+import { improves, neighbors, stepCost, tracePath } from './grid';
 import type { Algorithm, StepEvent } from './types';
 
 export const bellmanFord: Algorithm = (grid, start, end, { diagonal }) => {
@@ -21,7 +21,7 @@ export const bellmanFord: Algorithm = (grid, start, end, { diagonal }) => {
       let announced = false;
       for (const v of neighbors(grid, u, diagonal)) {
         const alt = dist[u] + stepCost(grid, u, v);
-        if (alt >= dist[v]) continue;
+        if (!improves(alt, dist[v])) continue;
         if (!announced) {
           events.push({ type: 'visit', node: u, line: 3 });
           announced = true;
