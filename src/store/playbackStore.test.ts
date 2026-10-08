@@ -162,3 +162,21 @@ describe('invalidation', () => {
     ]);
   });
 });
+
+describe('generators', () => {
+  it('generating a maze discards the current run', () => {
+    play().run();
+    grid().generate('random-walls', 1, true);
+    expect(play().runs).toBeNull();
+    expect(play().playing).toBe(false);
+  });
+
+  it('run() waits until a maze has finished generating', () => {
+    useGridStore.setState({ generating: true });
+    play().run();
+    expect(play().runs).toBeNull();
+    useGridStore.setState({ generating: false });
+    play().run();
+    expect(play().runs).not.toBeNull();
+  });
+});

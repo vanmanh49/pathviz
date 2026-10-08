@@ -12,6 +12,7 @@ import {
 import { isAdmissible } from '../algorithms/heuristics';
 import type { HeuristicId } from '../algorithms/types';
 import { ALGORITHMS, getAlgorithm } from '../data/algorithms';
+import { GENERATORS } from '../generators';
 import { COL_LIMITS, ROW_LIMITS, useGridStore } from '../store/gridStore';
 import { usePlaybackStore } from '../store/playbackStore';
 import { useUiStore, type Pane, type Tool } from '../store/uiStore';
@@ -181,8 +182,36 @@ function AlgorithmPicker({ pane, label }: { pane: Pane; label: string }) {
   );
 }
 
+function GenerateMenu() {
+  const generating = useGridStore((s) => s.generating);
+
+  // The menu is a list of actions, so it always snaps back to its placeholder.
+  return (
+    <select
+      className="field"
+      aria-label="Generate"
+      value=""
+      disabled={generating}
+      onChange={(e) => {
+        const instant = usePlaybackStore.getState().speed === Infinity;
+        useGridStore.getState().generate(e.target.value, undefined, instant);
+      }}
+    >
+      <option value="" disabled>
+        {generating ? 'Generating…' : 'Generate…'}
+      </option>
+      {GENERATORS.map(({ id, name }) => (
+        <option key={id} value={id}>
+          {name}
+        </option>
+      ))}
+    </select>
+  );
+}
+
 export function TopBar() {
   const run = usePlaybackStore((s) => s.run);
+  const generating = useGridStore((s) => s.generating);
 
   return (
     <header className="border-b border-line bg-panel">
@@ -194,10 +223,11 @@ export function TopBar() {
         <div className="flex items-center gap-2" data-tour="algorithm">
           <AlgorithmPicker pane={0} label="Algorithm" />
         </div>
-        <button type="button" className="btn btn-primary" onClick={run}>
+        <button type="button" className="btn btn-primary" disabled={generating} onClick={run}>
           <Play size={15} aria-hidden />
           Run
         </button>
+        <GenerateMenu />
       </div>
       <EditToolbar />
     </header>

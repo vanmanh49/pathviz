@@ -82,7 +82,9 @@ export const usePlaybackStore = create<PlaybackStore>((set, get) => {
     },
 
     run: () => {
-      const { grid, start, end, diagonal } = useGridStore.getState();
+      const { grid, start, end, diagonal, generating } = useGridStore.getState();
+      // A half-drawn maze is not a grid worth searching.
+      if (generating) return;
       const { compare, panes, speed } = get();
       const cellCount = grid.rows * grid.cols;
       // Dijkstra's result is the yardstick every run's path cost is measured against.

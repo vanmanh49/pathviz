@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { toId } from '../algorithms/grid';
 import { defaultEndpoints, defaultSize, useGridStore } from './gridStore';
 
@@ -120,5 +120,62 @@ describe('editing', () => {
     expect(after).not.toBe(before);
     expect(after.walls).not.toBe(before.walls);
     expect(before.walls[0]).toBe(0);
+  });
+});
+
+describe('generating', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('applies a generator to the grid at once when asked to', () => {
+    s().generate('backtracker', 1, true);
+    expect(s().generating).toBe(false);
+    expect(Array.from(s().grid.walls).filter(Boolean).length).toBeGreaterThan(400);
+    expect(s().grid.walls[s().start]).toBe(0);
+    expect(s().grid.walls[s().end]).toBe(0);
+  });
+
+  it('animates over several frames and ends on the same grid', () => {
+    s().generate('backtracker', 1, true);
+    const expected = Array.from(s().grid.walls);
+    s().resize(25, 50);
+
+    vi.useFakeTimers({ toFake: ['requestAnimationFrame', 'cancelAnimationFrame'] });
+    s().generate('backtracker', 1);
+    expect(s().generating).toBe(true);
+    vi.advanceTimersByTime(200);
+    expect(s().generating).toBe(true);
+    expect(Array.from(s().grid.walls)).not.toEqual(expected);
+    vi.advanceTimersByTime(3000);
+    expect(s().generating).toBe(false);
+    expect(Array.from(s().grid.walls)).toEqual(expected);
+  });
+
+  it('ignores edits while generating', () => {
+    vi.useFakeTimers({ toFake: ['requestAnimationFrame', 'cancelAnimationFrame'] });
+    s().generate('random-weights', 1);
+    const { grid, start } = s();
+    s().setWall(0, true);
+    s().setWeight(0, 5);
+    s().erase(0);
+    s().moveStart(1);
+    s().clearWalls();
+    s().clearWeights();
+    s().resetAll();
+    s().resize(6, 6);
+    s().generate('prim', 2);
+    expect(s().grid).toBe(grid);
+    expect(s().start).toBe(start);
+    vi.advanceTimersByTime(3000);
+    expect(s().generating).toBe(false);
+    expect(s().grid.rows).toBe(25);
+  });
+
+  it('ignores an unknown generator', () => {
+    const { grid } = s();
+    s().generate('nope', 1, true);
+    expect(s().grid).toBe(grid);
+    expect(s().generating).toBe(false);
   });
 });

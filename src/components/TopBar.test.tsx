@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { useGridStore } from '../store/gridStore';
 import { usePlaybackStore } from '../store/playbackStore';
@@ -100,5 +100,24 @@ describe('heuristic', () => {
     pick('Algorithm', 'greedy');
     fireEvent.click(screen.getByRole('button', { name: 'Diagonal movement' }));
     expect(screen.queryByText(/overestimates/)).toBeNull();
+  });
+});
+
+describe('generators', () => {
+  it('generates from the Generate menu and returns the menu to its placeholder', () => {
+    usePlaybackStore.setState({ speed: Infinity });
+    const menu = screen.getByRole('combobox', { name: 'Generate' });
+    fireEvent.change(menu, { target: { value: 'random-walls' } });
+    expect(Array.from(grid().grid.walls).some(Boolean)).toBe(true);
+    expect(menu).toHaveValue('');
+    usePlaybackStore.setState({ speed: 1 });
+  });
+
+  it('disables Run and Generate while a maze is being drawn', () => {
+    act(() => useGridStore.setState({ generating: true }));
+    expect(screen.getByRole('button', { name: 'Run' })).toBeDisabled();
+    expect(screen.getByRole('combobox', { name: 'Generate' })).toBeDisabled();
+    act(() => useGridStore.setState({ generating: false }));
+    expect(screen.getByRole('button', { name: 'Run' })).toBeEnabled();
   });
 });
