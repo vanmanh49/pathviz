@@ -1,8 +1,8 @@
 import { useLayoutEffect, useRef, type CSSProperties } from 'react';
-import { useGridPointer } from '../hooks/useGridPointer';
+import { cellOf, useGridPointer } from '../hooks/useGridPointer';
 import { usePainter } from '../hooks/usePainter';
 import { useGridStore } from '../store/gridStore';
-import type { Pane } from '../store/uiStore';
+import { useUiStore, type Pane } from '../store/uiStore';
 import { Cell } from './Cell';
 
 export function Grid({ pane }: { pane: Pane }) {
@@ -19,6 +19,12 @@ export function Grid({ pane }: { pane: Pane }) {
 
   usePainter(pane, cells);
 
+  const { setInspected } = useUiStore.getState();
+  const inspect = (target: EventTarget) => {
+    const cell = cellOf(target);
+    if (cell >= 0) setInspected({ pane, cell });
+  };
+
   return (
     <div className="grid-fit">
       <div
@@ -32,6 +38,8 @@ export function Grid({ pane }: { pane: Pane }) {
         className="grid-board"
         style={{ '--rows': rows, '--cols': cols } as CSSProperties}
         {...pointer}
+        onPointerOver={(e) => inspect(e.target)}
+        onPointerLeave={() => setInspected(null)}
       >
         {Array.from({ length: rows }, (_, row) => (
           <div role="row" key={row} className="contents">

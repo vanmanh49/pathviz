@@ -6,7 +6,8 @@ import { useUiStore, type Tool } from '../store/uiStore';
 
 type Mode = Tool | 'start' | 'end';
 
-function cellOf(target: EventTarget | null): CellId {
+/** The id of the grid cell an event landed on, or -1. */
+export function cellOf(target: EventTarget | null): CellId {
   const el = target instanceof Element ? target.closest<HTMLElement>('[data-cell]') : null;
   return el ? Number(el.dataset.cell) : -1;
 }

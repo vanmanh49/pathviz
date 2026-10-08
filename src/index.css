@@ -89,6 +89,12 @@
   }
 }
 
+.code-line[aria-current='true'] {
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+  box-shadow: inset 2px 0 0 var(--accent);
+  font-weight: 600;
+}
+
 /* The board keeps square cells and fills whichever of width or height runs out first. */
 .grid-fit {
   container-type: size;
