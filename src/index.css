@@ -136,6 +136,25 @@
   background: color-mix(in srgb, var(--weight) calc(12% + var(--w) * 7%), var(--cell));
 }
 
+.cell[data-state='frontier'] {
+  background: var(--frontier);
+  color: #0b0f14;
+}
+
+.cell[data-state='visited'] {
+  background: color-mix(in srgb, var(--visited) 60%, var(--cell));
+}
+
+.cell[data-state='current'] {
+  background: var(--current);
+  color: #0b0f14;
+}
+
+.cell[data-state='path'] {
+  background: var(--path);
+  color: #0b0f14;
+}
+
 .cell[data-kind='start'] {
   background: var(--start);
   color: #ffffff;

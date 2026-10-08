@@ -2,13 +2,16 @@ import {
   BrickWall,
   Eraser,
   MoveDiagonal,
+  Play,
   RotateCcw,
   Waypoints,
   Weight,
   type LucideIcon,
 } from 'lucide-react';
+import { ALGORITHMS } from '../data/algorithms';
 import { COL_LIMITS, ROW_LIMITS, useGridStore } from '../store/gridStore';
-import { useUiStore, type Tool } from '../store/uiStore';
+import { usePlaybackStore } from '../store/playbackStore';
+import { useUiStore, type Pane, type Tool } from '../store/uiStore';
 
 const TOOLS: { id: Tool; label: string; text: string; icon: LucideIcon }[] = [
   { id: 'wall', label: 'Wall tool', text: 'Wall', icon: BrickWall },
@@ -27,6 +30,8 @@ function EditToolbar() {
   const cols = useGridStore((s) => s.grid.cols);
   const diagonal = useGridStore((s) => s.diagonal);
   const grid = useGridStore.getState();
+  const hasRun = usePlaybackStore((s) => s.runs !== null);
+  const clearRun = usePlaybackStore((s) => s.clearRun);
 
   return (
     <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-line px-3 py-2">
@@ -73,6 +78,9 @@ function EditToolbar() {
       </button>
 
       <div className="flex items-center gap-1.5">
+        <button type="button" className="btn" disabled={!hasRun} onClick={clearRun}>
+          Clear path
+        </button>
         <button type="button" className="btn" onClick={grid.clearWalls}>
           Clear walls
         </button>
@@ -117,7 +125,29 @@ function EditToolbar() {
   );
 }
 
+function AlgorithmPicker({ pane, label }: { pane: Pane; label: string }) {
+  const algorithmId = usePlaybackStore((s) => s.panes[pane].algorithmId);
+  const setAlgorithm = usePlaybackStore((s) => s.setAlgorithm);
+
+  return (
+    <select
+      className="field"
+      aria-label={label}
+      value={algorithmId}
+      onChange={(e) => setAlgorithm(pane, e.target.value)}
+    >
+      {ALGORITHMS.map(({ id, name }) => (
+        <option key={id} value={id}>
+          {name}
+        </option>
+      ))}
+    </select>
+  );
+}
+
 export function TopBar() {
+  const run = usePlaybackStore((s) => s.run);
+
   return (
     <header className="border-b border-line bg-panel">
       <div className="flex flex-wrap items-center gap-2 px-3 py-2">
@@ -125,6 +155,13 @@ export function TopBar() {
           <Waypoints size={18} className="text-accent" aria-hidden />
           PathViz
         </h1>
+        <div className="flex items-center gap-2" data-tour="algorithm">
+          <AlgorithmPicker pane={0} label="Algorithm" />
+        </div>
+        <button type="button" className="btn btn-primary" onClick={run}>
+          <Play size={15} aria-hidden />
+          Run
+        </button>
       </div>
       <EditToolbar />
     </header>
