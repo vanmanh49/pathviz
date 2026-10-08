@@ -1,5 +1,6 @@
 import {
   BrickWall,
+  Columns2,
   Eraser,
   MoveDiagonal,
   Play,
@@ -161,7 +162,7 @@ function AlgorithmPicker({ pane, label }: { pane: Pane; label: string }) {
       {info.usesHeuristic && (
         <select
           className="field"
-          aria-label={label === 'Algorithm' ? 'Heuristic' : `Heuristic for ${label}`}
+          aria-label={label.replace('Algorithm', 'Heuristic')}
           value={heuristic}
           onChange={(e) => setHeuristic(pane, e.target.value as HeuristicId)}
         >
@@ -211,6 +212,8 @@ function GenerateMenu() {
 
 export function TopBar() {
   const run = usePlaybackStore((s) => s.run);
+  const compare = usePlaybackStore((s) => s.compare);
+  const setCompare = usePlaybackStore((s) => s.setCompare);
   const generating = useGridStore((s) => s.generating);
 
   return (
@@ -220,14 +223,25 @@ export function TopBar() {
           <Waypoints size={18} className="text-accent" aria-hidden />
           PathViz
         </h1>
-        <div className="flex items-center gap-2" data-tour="algorithm">
-          <AlgorithmPicker pane={0} label="Algorithm" />
+        <div className="flex flex-wrap items-center gap-2" data-tour="algorithm">
+          <AlgorithmPicker pane={0} label={compare ? 'Algorithm A' : 'Algorithm'} />
+          {compare && <AlgorithmPicker pane={1} label="Algorithm B" />}
         </div>
         <button type="button" className="btn btn-primary" disabled={generating} onClick={run}>
           <Play size={15} aria-hidden />
           Run
         </button>
         <GenerateMenu />
+        <button
+          type="button"
+          className="btn"
+          aria-label="Compare mode"
+          aria-pressed={compare}
+          onClick={() => setCompare(!compare)}
+        >
+          <Columns2 size={15} aria-hidden />
+          Compare
+        </button>
       </div>
       <EditToolbar />
     </header>
