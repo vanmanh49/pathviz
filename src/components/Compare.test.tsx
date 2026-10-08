@@ -250,7 +250,7 @@ describe('invalidation', () => {
     seek(10);
     fireEvent.click(button('Compare mode'));
     expect(play()).toMatchObject({ runs: null, index: 0, length: 0, playing: false });
-    expect(document.querySelectorAll('[data-state]')).toHaveLength(0);
+    expect(document.querySelectorAll('[data-cell][data-state]')).toHaveLength(0);
   });
 
   it('turning compare mode on discards a single run', () => {

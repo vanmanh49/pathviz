@@ -5,6 +5,7 @@ import { AlgorithmCard } from './AlgorithmCard';
 import { CompareSummary } from './CompareSummary';
 import { DataStructurePanel } from './DataStructurePanel';
 import { Inspector } from './Inspector';
+import { Legend } from './Legend';
 import { Narration } from './Narration';
 import { PseudocodePanel } from './PseudocodePanel';
 import { StatsPanel } from './StatsPanel';
@@ -53,6 +54,7 @@ export function Sidebar() {
       <DataStructurePanel run={run} info={info} />
       <Inspector />
       <StatsPanel run={run} />
+      <Legend />
     </aside>
   );
 }

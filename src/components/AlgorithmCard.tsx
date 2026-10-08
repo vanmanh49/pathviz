@@ -1,9 +1,11 @@
+import { memo } from 'react';
 import type { AlgorithmInfo } from '../data/algorithms';
 import { Facts } from './Panel';
 
 const OPTIMAL = { yes: 'Yes', no: 'No', conditional: 'Depends' };
 
-export function AlgorithmCard({ info }: { info: AlgorithmInfo }) {
+// Memoised: the card only changes with the algorithm, not with every playback step.
+export const AlgorithmCard = memo(function AlgorithmCard({ info }: { info: AlgorithmInfo }) {
   return (
     <section aria-label="Algorithm" className="panel p-3">
       <h2 className="mb-1 text-base font-semibold">{info.name}</h2>
@@ -22,4 +24,4 @@ export function AlgorithmCard({ info }: { info: AlgorithmInfo }) {
       </p>
     </section>
   );
-}
+});

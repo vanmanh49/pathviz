@@ -23,6 +23,7 @@
   --visited: #0072b2;
   --current: #cc79a7;
   --path: #f0e442;
+  --edge: rgb(22 27 34 / 0.45);
 }
 
 .dark {
@@ -38,7 +39,8 @@
 
   --cell: #0f141a;
   --cell-line: #222b36;
-  --wall: #c5ced8;
+  --wall: #a3aebb;
+  --edge: rgb(11 15 20 / 0.55);
 }
 
 @theme inline {
@@ -133,6 +135,12 @@
   line-height: 1;
 }
 
+.cell:focus-visible {
+  z-index: 4;
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
 .cell[data-kind='wall'] {
   background: var(--wall);
   box-shadow: none;
@@ -142,37 +150,137 @@
   background: color-mix(in srgb, var(--weight) calc(12% + var(--w) * 7%), var(--cell));
 }
 
+/* Search states. The thin edge keeps neighbouring cells of one colour apart and
+   gives the paler colours an outline against a light background. */
+.cell[data-state] {
+  box-shadow: inset 0 0 0 1px var(--edge);
+}
+
 .cell[data-state='frontier'] {
   background: var(--frontier);
   color: #0b0f14;
+  animation: cell-fade 180ms ease-out;
 }
 
 .cell[data-state='visited'] {
-  background: color-mix(in srgb, var(--visited) 60%, var(--cell));
+  background: var(--visited);
+  color: #ffffff;
+  animation: cell-pop 220ms ease-out;
 }
 
 .cell[data-state='current'] {
+  z-index: 1;
   background: var(--current);
+  box-shadow: inset 0 0 0 2px var(--ink);
   color: #0b0f14;
 }
 
 .cell[data-state='path'] {
   background: var(--path);
   color: #0b0f14;
+  animation: path-trace 240ms ease-out both;
+  animation-delay: calc(var(--i, 0) * 16ms);
 }
 
-.cell[data-kind='start'] {
+/* The path's cue besides colour: a dot, or a heavier edge where a weight number is in the way. */
+.cell[data-state='path']:not([data-kind='weight'])::after {
+  content: '';
+  width: 28%;
+  height: 28%;
+  border-radius: 50%;
+  background: rgb(11 15 20 / 0.7);
+}
+
+.cell[data-state='path'][data-kind='weight'] {
+  box-shadow: inset 0 0 0 2px rgb(11 15 20 / 0.7);
+}
+
+/* The start and end markers sit above the cell so they can glide between cells. */
+.marker {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: grid;
+  place-items: center;
   background: var(--start);
   color: #ffffff;
 }
 
-.cell[data-kind='end'] {
+.cell[data-kind='end'] > .marker {
   background: var(--end);
-  color: #ffffff;
 }
 
 .cell svg {
   width: 70%;
   height: 70%;
   pointer-events: none;
+}
+
+/* Legend swatches reuse the cell styles at a fixed size, without the entrance animations. */
+.swatch {
+  flex: none;
+  width: 1.15rem;
+  height: 1.15rem;
+  border-radius: 3px;
+  font-size: 0.65rem;
+  animation: none !important;
+}
+
+.swatch[data-kind='start'] {
+  background: var(--start);
+  color: #ffffff;
+}
+
+.swatch[data-kind='end'] {
+  background: var(--end);
+  color: #ffffff;
+}
+
+.swatch[data-label]::before {
+  content: attr(data-label);
+}
+
+.tour-spotlight {
+  position: fixed;
+  z-index: 40;
+  border-radius: 8px;
+  box-shadow:
+    0 0 0 2px var(--accent),
+    0 0 0 100vmax rgb(0 0 0 / 0.5);
+  pointer-events: none;
+  transition: all 200ms ease;
+}
+
+@keyframes cell-fade {
+  from {
+    opacity: 0.25;
+  }
+}
+
+@keyframes cell-pop {
+  from {
+    border-radius: 35%;
+    transform: scale(0.5);
+  }
+  60% {
+    transform: scale(1.1);
+  }
+}
+
+@keyframes path-trace {
+  from {
+    opacity: 0.3;
+    transform: scale(0.4);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cell,
+  .cell::after {
+    animation: none !important;
+  }
+
+  .tour-spotlight {
+    transition: none;
+  }
 }

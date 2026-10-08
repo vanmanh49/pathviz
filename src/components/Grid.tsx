@@ -1,4 +1,5 @@
 import { useLayoutEffect, useRef, type CSSProperties } from 'react';
+import { useGridKeyboard } from '../hooks/useGridKeyboard';
 import { cellOf, useGridPointer } from '../hooks/useGridPointer';
 import { usePainter } from '../hooks/usePainter';
 import { getAlgorithm } from '../data/algorithms';
@@ -23,6 +24,7 @@ export function Grid({ pane }: { pane: Pane }) {
   }, [rows, cols]);
 
   usePainter(pane, cells);
+  const keyboard = useGridKeyboard(pane, cells);
 
   const { setInspected } = useUiStore.getState();
   const inspect = (target: EventTarget) => {
@@ -49,13 +51,14 @@ export function Grid({ pane }: { pane: Pane }) {
           className="grid-board"
           style={{ '--rows': rows, '--cols': cols } as CSSProperties}
           {...pointer}
+          {...keyboard}
           onPointerOver={(e) => inspect(e.target)}
           onPointerLeave={() => setInspected(null)}
         >
           {Array.from({ length: rows }, (_, row) => (
             <div role="row" key={row} className="contents">
               {Array.from({ length: cols }, (_, col) => (
-                <Cell key={col} id={row * cols + col} />
+                <Cell key={col} id={row * cols + col} pane={pane} />
               ))}
             </div>
           ))}

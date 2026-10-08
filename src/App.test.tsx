@@ -121,7 +121,7 @@ describe('painting', () => {
     render(<App />);
     runPaused();
     act(() => play().seek(3));
-    const current = document.querySelectorAll<HTMLElement>('[data-state="current"]');
+    const current = document.querySelectorAll<HTMLElement>('[data-cell][data-state="current"]');
     expect(current).toHaveLength(1);
     expect(current[0].dataset.cell).toBe(String(grid().start));
   });
@@ -139,7 +139,7 @@ describe('painting', () => {
     render(<App />);
     runPaused();
     act(() => play().seek(play().length));
-    const path = document.querySelectorAll<HTMLElement>('[data-state="path"]');
+    const path = document.querySelectorAll<HTMLElement>('[data-cell][data-state="path"]');
     expect(path).toHaveLength(play().runs![0].pathLength! + 1);
     const start = document.querySelector<HTMLElement>(`[data-cell="${grid().start}"]`)!;
     const end = document.querySelector<HTMLElement>(`[data-cell="${grid().end}"]`)!;

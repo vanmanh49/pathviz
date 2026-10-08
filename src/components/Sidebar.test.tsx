@@ -65,6 +65,8 @@ describe('pseudocode', () => {
   it.each(['bfs', 'astar', 'bellman-ford'])(
     'highlights the line of the current event at every step of %s',
     (id) => {
+      // A small grid keeps a walk over every single step quick.
+      grid().resize(5, 7);
       render(<Sidebar />);
       start(id);
       const { events } = run0().playback;

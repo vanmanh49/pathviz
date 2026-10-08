@@ -1,10 +1,13 @@
 import {
   BrickWall,
+  CircleHelp,
   Columns2,
   Eraser,
+  Moon,
   MoveDiagonal,
   Play,
   RotateCcw,
+  Sun,
   TriangleAlert,
   Waypoints,
   Weight,
@@ -40,7 +43,7 @@ function EditToolbar() {
 
   return (
     <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-line px-3 py-2">
-      <div className="flex items-center gap-1.5" role="group" aria-label="Edit tool">
+      <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Edit tool">
         {TOOLS.map(({ id, label, text, icon: Icon }) => (
           <button
             key={id}
@@ -82,7 +85,7 @@ function EditToolbar() {
         Diagonals
       </button>
 
-      <div className="flex items-center gap-1.5">
+      <div className="flex flex-wrap items-center gap-1.5">
         <button type="button" className="btn" disabled={!hasRun} onClick={clearRun}>
           Clear path
         </button>
@@ -98,7 +101,7 @@ function EditToolbar() {
         </button>
       </div>
 
-      <div className="flex items-center gap-3 text-sm text-muted">
+      <div className="flex flex-wrap items-center gap-3 text-sm text-muted">
         <label className="flex items-center gap-1.5">
           Rows
           <input
@@ -215,6 +218,9 @@ export function TopBar() {
   const compare = usePlaybackStore((s) => s.compare);
   const setCompare = usePlaybackStore((s) => s.setCompare);
   const generating = useGridStore((s) => s.generating);
+  const theme = useUiStore((s) => s.theme);
+  const { setTheme, setTourSeen } = useUiStore.getState();
+  const otherTheme = theme === 'dark' ? 'light' : 'dark';
 
   return (
     <header className="border-b border-line bg-panel">
@@ -242,6 +248,26 @@ export function TopBar() {
           <Columns2 size={15} aria-hidden />
           Compare
         </button>
+        <div className="ml-auto flex items-center gap-1.5">
+          <button
+            type="button"
+            className="btn btn-icon"
+            aria-label="Show tour"
+            title="Show tour"
+            onClick={() => setTourSeen(false)}
+          >
+            <CircleHelp size={16} aria-hidden />
+          </button>
+          <button
+            type="button"
+            className="btn btn-icon"
+            aria-label={`Switch to ${otherTheme} theme`}
+            title={`Switch to ${otherTheme} theme`}
+            onClick={() => setTheme(otherTheme)}
+          >
+            {theme === 'dark' ? <Sun size={16} aria-hidden /> : <Moon size={16} aria-hidden />}
+          </button>
+        </div>
       </div>
       <EditToolbar />
     </header>

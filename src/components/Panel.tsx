@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { motion } from 'framer-motion';
 
 /** A titled card in the sidebar. `label` names the region for assistive technology. */
 export function Panel({
@@ -11,10 +12,16 @@ export function Panel({
   children: ReactNode;
 }) {
   return (
-    <section aria-label={label} className="panel p-3">
+    <motion.section
+      aria-label={label}
+      className="panel p-3"
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.2 }}
+    >
       <h2 className="mb-2 text-xs font-semibold tracking-wide text-muted uppercase">{title}</h2>
       {children}
-    </section>
+    </motion.section>
   );
 }
 

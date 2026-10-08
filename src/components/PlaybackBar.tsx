@@ -81,6 +81,7 @@ export function PlaybackBar() {
       <input
         type="range"
         aria-label="Timeline"
+        aria-valuetext={`Step ${index} of ${length}`}
         className="min-w-40 flex-1 accent-accent"
         min={0}
         max={length}
