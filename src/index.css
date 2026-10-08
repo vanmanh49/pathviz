@@ -1,0 +1,286 @@
+@import 'tailwindcss';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  color-scheme: light;
+  --surface: #f4f6f8;
+  --panel: #ffffff;
+  --raised: #edf0f4;
+  --line: #d3d9e1;
+  --ink: #161b22;
+  --muted: #566170;
+  --accent: #0072b2;
+  --on-accent: #ffffff;
+
+  --cell: #ffffff;
+  --cell-line: #dde2e9;
+  --wall: #1f2733;
+  --weight: #e69f00;
+  --start: #009e73;
+  --end: #d55e00;
+  --frontier: #56b4e9;
+  --visited: #0072b2;
+  --current: #cc79a7;
+  --path: #f0e442;
+  --edge: rgb(22 27 34 / 0.45);
+}
+
+.dark {
+  color-scheme: dark;
+  --surface: #0b0f14;
+  --panel: #131920;
+  --raised: #1b222b;
+  --line: #2b3440;
+  --ink: #e6edf3;
+  --muted: #9aa7b4;
+  --accent: #56b4e9;
+  --on-accent: #0b0f14;
+
+  --cell: #0f141a;
+  --cell-line: #222b36;
+  --wall: #a3aebb;
+  --edge: rgb(11 15 20 / 0.55);
+}
+
+@theme inline {
+  --color-surface: var(--surface);
+  --color-panel: var(--panel);
+  --color-raised: var(--raised);
+  --color-line: var(--line);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-on-accent: var(--on-accent);
+}
+
+@layer base {
+  body {
+    @apply bg-surface text-ink antialiased;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex h-8 shrink-0 cursor-pointer items-center gap-1.5 rounded-md border border-line bg-raised px-2.5 text-sm whitespace-nowrap text-ink transition-colors hover:border-muted disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .btn[aria-pressed='true'] {
+    @apply border-accent bg-accent text-on-accent;
+  }
+
+  .btn-primary {
+    @apply border-accent bg-accent font-medium text-on-accent hover:opacity-90;
+  }
+
+  .btn-icon {
+    @apply w-8 justify-center px-0;
+  }
+
+  .field {
+    @apply h-8 rounded-md border border-line bg-raised px-2 text-sm text-ink;
+  }
+
+  .panel {
+    @apply rounded-lg border border-line bg-panel;
+  }
+}
+
+.code-line[aria-current='true'] {
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+  box-shadow: inset 2px 0 0 var(--accent);
+  font-weight: 600;
+}
+
+/* The board keeps square cells and fills whichever of width or height runs out first. */
+.grid-fit {
+  container-type: size;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+.grid-board {
+  container-type: inline-size;
+  display: grid;
+  grid-template-columns: repeat(var(--cols), 1fr);
+  grid-template-rows: repeat(var(--rows), 1fr);
+  width: min(100cqw, 100cqh * var(--cols) / var(--rows));
+  aspect-ratio: var(--cols) / var(--rows);
+  touch-action: none;
+  user-select: none;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.cell {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  min-height: 0;
+  background: var(--cell);
+  box-shadow: inset 0 0 0 0.5px var(--cell-line);
+  color: var(--ink);
+  font-size: calc(100cqw / var(--cols) * 0.5);
+  font-weight: 600;
+  line-height: 1;
+}
+
+.cell:focus-visible {
+  z-index: 4;
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.cell[data-kind='wall'] {
+  background: var(--wall);
+  box-shadow: none;
+}
+
+.cell[data-kind='weight'] {
+  background: color-mix(in srgb, var(--weight) calc(12% + var(--w) * 7%), var(--cell));
+}
+
+/* Search states. The thin edge keeps neighbouring cells of one colour apart and
+   gives the paler colours an outline against a light background. */
+.cell[data-state] {
+  box-shadow: inset 0 0 0 1px var(--edge);
+}
+
+.cell[data-state='frontier'] {
+  background: var(--frontier);
+  color: #0b0f14;
+  animation: cell-fade 180ms ease-out;
+}
+
+.cell[data-state='visited'] {
+  background: var(--visited);
+  color: #ffffff;
+  animation: cell-pop 220ms ease-out;
+}
+
+.cell[data-state='current'] {
+  z-index: 1;
+  background: var(--current);
+  box-shadow: inset 0 0 0 2px var(--ink);
+  color: #0b0f14;
+}
+
+.cell[data-state='path'] {
+  background: var(--path);
+  color: #0b0f14;
+  animation: path-trace 240ms ease-out both;
+  animation-delay: calc(var(--i, 0) * 16ms);
+}
+
+/* The path's cue besides colour: a dot, or a heavier edge where a weight number is in the way. */
+.cell[data-state='path']:not([data-kind='weight'])::after {
+  content: '';
+  width: 28%;
+  height: 28%;
+  border-radius: 50%;
+  background: rgb(11 15 20 / 0.7);
+}
+
+.cell[data-state='path'][data-kind='weight'] {
+  box-shadow: inset 0 0 0 2px rgb(11 15 20 / 0.7);
+}
+
+/* The start and end markers sit above the cell so they can glide between cells. */
+.marker {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  background: var(--start);
+  color: #ffffff;
+}
+
+.cell[data-kind='end'] > .marker {
+  background: var(--end);
+}
+
+.cell svg {
+  width: 70%;
+  height: 70%;
+  pointer-events: none;
+}
+
+/* Legend swatches reuse the cell styles at a fixed size, without the entrance animations. */
+.swatch {
+  flex: none;
+  width: 1.15rem;
+  height: 1.15rem;
+  border-radius: 3px;
+  font-size: 0.65rem;
+  animation: none !important;
+}
+
+.swatch[data-kind='start'] {
+  background: var(--start);
+  color: #ffffff;
+}
+
+.swatch[data-kind='end'] {
+  background: var(--end);
+  color: #ffffff;
+}
+
+.swatch[data-label]::before {
+  content: attr(data-label);
+}
+
+.tour-spotlight {
+  position: fixed;
+  z-index: 40;
+  border-radius: 8px;
+  box-shadow:
+    0 0 0 2px var(--accent),
+    0 0 0 100vmax rgb(0 0 0 / 0.5);
+  pointer-events: none;
+  transition: all 200ms ease;
+}
+
+@keyframes cell-fade {
+  from {
+    opacity: 0.25;
+  }
+}
+
+@keyframes cell-pop {
+  from {
+    border-radius: 35%;
+    transform: scale(0.5);
+  }
+  60% {
+    transform: scale(1.1);
+  }
+}
+
+@keyframes path-trace {
+  from {
+    opacity: 0.3;
+    transform: scale(0.4);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cell,
+  .cell::after {
+    animation: none !important;
+  }
+
+  .tour-spotlight {
+    transition: none;
+  }
+}

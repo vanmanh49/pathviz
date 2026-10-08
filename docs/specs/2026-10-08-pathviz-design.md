@@ -94,7 +94,7 @@ type StepEvent =
 |---|---|
 | `visit` | node leaves the frontier, becomes visited and current; visited count +1 on first visit |
 | `enqueue` | node joins the frontier with its priority, `h` and an insertion sequence number |
-| `relax` | `dist[node] = newDist`, `parent[node] = from`; an unseen node becomes frontier |
+| `relax` | `dist[node] = newDist`, `parent[node] = from`; an unseen node becomes discovered, which is drawn like the frontier but is not yet listed in it |
 | `skip` | none; exists for narration and pseudocode highlighting |
 | `pass` | pass counter = `n` (Bellman-Ford) |
 | `found` | result = found, current = node |
@@ -146,7 +146,7 @@ State is a set of typed arrays sized to the grid plus a few scalars:
 
 ```ts
 interface PlaybackState {
-  status: Uint8Array;     // 0 unseen, 1 frontier, 2 visited
+  status: Uint8Array;     // 0 unseen, 1 discovered, 2 frontier, 3 visited
   dist: Float64Array;     // Infinity when unknown
   parent: Int32Array;     // -1 when none
   priority: Float64Array;
@@ -176,7 +176,7 @@ Seeking costs at most one array copy plus `interval` constant-time updates, so
 any jump on a 50 × 25 grid stays far below one frame.
 
 The frontier is not a separate structure. A cell is in the frontier when its
-status is 1, and the data-structure panel orders those cells by `seq` (queue),
+status is 2, and the data-structure panel orders those cells by `seq` (queue),
 reverse `seq` (stack) or `priority` (heap). Checkpoints are therefore plain
 array copies.
 
